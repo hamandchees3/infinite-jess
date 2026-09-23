@@ -32,6 +32,9 @@ Audio API; text uses only the fonts already on the computer.
 Export `dist/InfiniteJess.mp4` as a regular video file (1920×1080, 60 fps,
 H.264 + AAC, 99 s including the footnote), for phones, TVs and messages.
 Generated MP4 files are kept locally and excluded from Git because of their size.
+The master is 20 Mbps (about 237 MB); `dist/InfiniteJess-share.mp4` is the same film at
+6 Mbps (about 73 MB), visually almost identical, for messages and phones:
+`python3 tools/export.py --mbps 6 --name InfiniteJess-share.mp4`.
 
 The film renders it itself, frame by frame, so nothing is dropped or out of sync.
 Press **E** while watching in Chrome or Edge, or run `python3 tools/export.py`, which
