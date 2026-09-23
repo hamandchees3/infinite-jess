@@ -225,7 +225,7 @@ void main(){
 }`, null, 'endbg');
     this.lines = NOTE.map(s => IJ.text(s, { font: "'Courier New', Courier, monospace", size: 72, pad: 0.2 }));
     this.sig = IJ.text('Love, Sam', { font: 'script', size: 150, pad: 0.4 });
-    this.hint = IJ.text('R · watch again', { font: 'sans', size: 44, spacing: 0.2 });
+    this.hint = IJ.text('R · watch again      E · save as video', { font: 'sans', size: 44, spacing: 0.2 });
   },
   render(t, l) {
     this.bg.draw({ uT: t });
@@ -244,7 +244,7 @@ void main(){
     });
     const sigA = IJ.smooth(0.2, 1.2, clock);
     if (sigA > 0) IJ.sprite(this.sig, { x: 0.85, y: -0.36, h: 0.36, alpha: sigA, color: [1, 0.82, 0.74], wipe: IJ.clamp(clock / 1.2), soft: 0.1 });
-    const hintA = IJ.smooth(2.5, 3.5, clock) * 0.35;
+    const hintA = IJ.exporting ? 0 : IJ.smooth(2.5, 3.5, clock) * 0.35;
     if (hintA > 0) IJ.sprite(this.hint, { x: 0, y: -0.82, h: 0.05, alpha: hintA, color: [0.9, 0.88, 0.84] });
   },
 });

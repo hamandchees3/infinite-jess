@@ -7,6 +7,7 @@ const params = new URLSearchParams(location.search);
 
 let gl, canvas, W = 0, H = 0;
 let resScale = 1;                 // lowered automatically on slower GPUs
+let forced = null;                // [w, h] while exporting
 let rtA, rtB, rtComp, bloomH, bloomQ1, bloomQ2, bloomE1, bloomE2;
 let progComp, progBright, progBlur, progFinal;
 
@@ -107,7 +108,7 @@ function resize() {
   canvas.style.height = ch + 'px';
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cap = +params.get('res') || 1920;
-  const w = Math.round(Math.min(cw * dpr, cap) * resScale), h = Math.round(w * 9 / 16);
+  const w = forced ? forced[0] : Math.round(Math.min(cw * dpr, cap) * resScale), h = forced ? forced[1] : Math.round(w * 9 / 16);
   if (w === W && h === H) return;
   W = w; H = h;
   canvas.width = W; canvas.height = H;
@@ -188,6 +189,7 @@ function renderFrame(t) {
   gl.viewport(0, 0, W, H); IJ.curW = W; IJ.curH = H;
   let fade = 1;
   if (t < 0.05) fade = 0;
+  if (IJ.exportFadeOut) fade *= 1 - IJ.smooth(IJ.exportFadeOut, IJ.exportFadeOut + 1.2, t);
   progFinal.draw({ uScene: src.tex, uB1: bloomQ2.tex, uB2: bloomE2.tex, uBloom: post.bloom, uGrain: post.grain, uVig: post.vignette, uFade: fade, uSeed: (frameSeed++ % 97) });
 }
 
@@ -290,7 +292,7 @@ function start() {
     if (IJ.audio) IJ.audio.unlock();
     play(filmTime);
   };
-  if (params.has('still')) overlay.classList.add('gone');
+  if (params.has('still') || params.has('export')) overlay.classList.add('gone');
 
   // Render the score offline (it's all synthesis), then enable the play button.
   const ready = () => { document.body.classList.add('ready'); status.textContent = 'sound on · click anywhere'; };
@@ -315,6 +317,10 @@ function start() {
     else if (e.code === 'ArrowRight') { seek(now() + 5); updateUI(filmTime); }
     else if (e.code === 'ArrowLeft') { seek(now() - 5); updateUI(filmTime); }
     else if (e.code === 'KeyR') { seek(0); if (!playing) play(0); }
+    else if (e.code === 'KeyE' && IJ.exportToDownload && !IJ.exporting) {
+      if (playing) pause();
+      if (confirm('Export the film as an MP4 video? It renders every frame, so it takes a few minutes.')) IJ.exportToDownload();
+    }
     else if (e.code === 'KeyF') { (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {}); }
   });
   let hideTimer = 0;
@@ -325,7 +331,7 @@ function start() {
   });
 }
 
-IJ.film = { start, seek, play, pause, render: renderFrame, get time() { return filmTime; }, get playing() { return playing; }, LENGTH: FILM_LEN, sceneState };
+IJ.film = { start, seek, play, pause, render: renderFrame, setSize(w, h) { forced = w ? [w, h] : null; resize(); }, get time() { return filmTime; }, get playing() { return playing; }, LENGTH: FILM_LEN, sceneState };
 window.film = IJ.film;
 window.addEventListener('DOMContentLoaded', () => {
   try { start(); }

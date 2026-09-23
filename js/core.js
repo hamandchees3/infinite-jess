@@ -127,7 +127,7 @@ void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2); vUv = p; gl_Posit
 
 // ------------------------------------------------------------- GL setup ---
 IJ.initGL = function (canvas) {
-  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: true, premultipliedAlpha: false, preserveDrawingBuffer: /[?&]debug/.test(location.search), powerPreference: 'high-performance' });
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: true, premultipliedAlpha: false, preserveDrawingBuffer: /[?&](debug|export)/.test(location.search), powerPreference: 'high-performance' });
   if (!gl) throw new Error('WebGL2 is not available in this browser.');
   IJ.gl = gl;
   IJ.floatRT = !!gl.getExtension('EXT_color_buffer_float');

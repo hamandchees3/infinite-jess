@@ -1,1 +1,10 @@
 .DS_Store
+
+# Local video exports are too large for regular GitHub commits.
+dist/*.mp4
+
+# Separate GitHub Desktop clone; not part of the film source.
+/infinite jess/
+
+__pycache__/
+*.pyc
