@@ -23,6 +23,14 @@ const CUES = IJ.CUES = {
   chalkAxes: 57.4, chalkDots: 58.9, dieRoll: 61.2, learn: 62.4, merge: 66.2, bell: 67.1,
   duskWash: 69.0, treesGrow: 71.0, blossom: 75.3,
   ribbonInf: 81.6, ribbonJess: 84.4, signoff: 87.3,
+  endnote: {
+    start: 90.6, cps: 40, gap: 0.35,
+    lines: [
+      '\u00B9 In the novel, the Entertainment is a film so captivating',
+      '  that no one who sees it can ever look away.',
+      '  I know exactly how that feels.',
+    ],
+  },
 };
 
 const CH = {
@@ -503,6 +511,18 @@ function buildScore(ctx, W0 = 0, W1 = 1e9) {
     for (const [bar, notes] of fin) melody(bar, notes, (t, m, d, v) => { epiano(t, m, d, v, B.ep); bell(t, m, v * 0.6, B.bell, 3); });
     shimmer(CUES.ribbonJess, 2.8, 22, 0.35, B.cel, 86, 104);
     [n('D5'), n('F#5'), n('A5'), n('D6'), n('E6'), n('A6')].forEach((m, i) => bell(CUES.signoff + i * 0.09, m, 0.4, B.bell, 4.5));
+    // the end card, typed: a key for every character, a little bell and a return at each line
+    const E = CUES.endnote;
+    let tt = E.start;
+    E.lines.forEach(line => {
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] !== ' ') tap(tt + i / E.cps + (R() - 0.5) * 0.006, 0.55 + 0.25 * R(), B.fxDry, 2200 + R() * 900);
+      }
+      tt += line.length / E.cps;
+      chime(tt - 0.05, n('A6'), 0.25, B.fxDry, [[1, 1, 0.4], [2.76, 0.3, 0.15]]);
+      noiseHit(tt + 0.02, 0.22, { f0: 900, f1: 2400, q: 2, gain: 0.05, swell: true, rel: 0.05 }, B.fxDry);
+      tt += E.gap;
+    });
   }
 }
 
