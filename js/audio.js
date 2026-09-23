@@ -568,7 +568,7 @@ IJ.audio = {
       const comp = actx.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = 0.008; comp.release.value = 0.3;
       bus = actx.createGain(); bus.gain.value = 1;
-      const out = actx.createGain(); out.gain.value = 0.95;
+      const out = actx.createGain(); out.gain.value = 1.45;
       bus.connect(comp); comp.connect(out); out.connect(actx.destination);
     }
     if (actx.state === 'suspended') actx.resume();

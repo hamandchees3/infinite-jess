@@ -18,14 +18,15 @@ uniform vec2 uHand, uCollar; uniform float uSag;
 uniform vec3 uCam;                            // center x, y, zoom
 
 vec3 COL; float SH;                           // composite + accumulated shadow
+float PT, TORN;                               // paper grain + torn-edge offset, once per pixel
 float paperTex(vec2 p){ return .93 + .07*fbm(p*55. + uF*.0); }
-float torn(vec2 p){ return (vnoise(p*95.) - .5)*.005 + (vnoise(p*23.) - .5)*.005; }
+float torn(vec2 p){ return TORN; }
 // place one paper piece: shadow first, then the piece itself
 void piece(float dShadow, float d, vec3 c){
   float s = 1. - smoothstep(-.004, .014, dShadow);
   COL *= 1. - .32*s;
   float a = 1. - smoothstep(-.0015, .0015, d);
-  COL = mix(COL, c*paperTex(gl_FragCoord.xy/uRes.y*vec2(1.3,1.)), a);
+  COL = mix(COL, c*PT, a);
 }
 #define SHOFF vec2(-.011, .013)
 #define PIECE(expr, color) { vec2 q = p; float d1 = expr; q = p + SHOFF; float d0 = expr; piece(d0 + torn(p), d1 + torn(p), color); }
@@ -215,8 +216,10 @@ void main(){
   vec2 p = (2.*gl_FragCoord.xy - uRes)/uRes.y/uCam.z + uCam.xy;
   // stop-motion: each frame the whole set shifts a hair
   p += (hash22(vec2(uF, 3.1)) - .5)*.003;
+  PT = paperTex(gl_FragCoord.xy/uRes.y*vec2(1.3,1.));
+  TORN = (vnoise(p*95.) - .5)*.005 + (vnoise(p*23.) - .5)*.005;
   COL = mix(vec3(.84,.9,.9), vec3(.62,.76,.84), sat(p.y*.6 + .3));
-  COL *= paperTex(p*1.7);
+  COL *= .93 + .07*fbm(p*1.7*55.);
   // sun with paper rays, turning slowly
   {
     vec2 s = p - vec2(.42, .5);

@@ -92,6 +92,7 @@ float gnoise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*f*(f*(f*6.-15.)+10
   float a=dot(ga,f), b=dot(gb,f-vec2(1,0)), c=dot(gc,f-vec2(0,1)), d=dot(gd,f-vec2(1,1));
   return mix(mix(a,b,u.x),mix(c,d,u.x),u.y)*1.4; }
 float fbm(vec2 p){ float a=.5, s=0.; for(int i=0;i<5;i++){ s+=a*vnoise(p); p=mat2(1.6,1.2,-1.2,1.6)*p+vec2(1.7,9.2); a*=.5; } return s; }
+float fbm3(vec2 p){ float a=.5, s=0.; for(int i=0;i<3;i++){ s+=a*vnoise(p); p=mat2(1.6,1.2,-1.2,1.6)*p+vec2(1.7,9.2); a*=.5; } return s/.875; }
 float gfbm(vec2 p){ float a=.5, s=0.; for(int i=0;i<5;i++){ s+=a*gnoise(p); p=mat2(1.6,1.2,-1.2,1.6)*p+vec2(1.7,9.2); a*=.5; } return s; }
 mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,s,-s,c); }
 float sdCircle(vec2 p, float r){ return length(p)-r; }
@@ -126,7 +127,7 @@ void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2); vUv = p; gl_Posit
 
 // ------------------------------------------------------------- GL setup ---
 IJ.initGL = function (canvas) {
-  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: true, premultipliedAlpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: true, premultipliedAlpha: false, preserveDrawingBuffer: /[?&]debug/.test(location.search), powerPreference: 'high-performance' });
   if (!gl) throw new Error('WebGL2 is not available in this browser.');
   IJ.gl = gl;
   IJ.floatRT = !!gl.getExtension('EXT_color_buffer_float');

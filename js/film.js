@@ -6,6 +6,7 @@ const FILM_LEN = 90;
 const params = new URLSearchParams(location.search);
 
 let gl, canvas, W = 0, H = 0;
+let resScale = 1;                 // lowered automatically on slower GPUs
 let rtA, rtB, rtComp, bloomH, bloomQ1, bloomQ2, bloomE1, bloomE2;
 let progComp, progBright, progBlur, progFinal;
 
@@ -106,7 +107,7 @@ function resize() {
   canvas.style.height = ch + 'px';
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cap = +params.get('res') || 1920;
-  const w = Math.min(Math.round(cw * dpr), cap), h = Math.round(w * 9 / 16);
+  const w = Math.round(Math.min(cw * dpr, cap) * resScale), h = Math.round(w * 9 / 16);
   if (w === W && h === H) return;
   W = w; H = h;
   canvas.width = W; canvas.height = H;
@@ -232,10 +233,25 @@ function loop() {
   if (audioReady && audio().playing()) { wallOffset = t; wallStart = performance.now(); }
   filmTime = t;
   renderFrame(t);
-  const w = performance.now(); fpsAcc += w - lastWall; fpsN++; lastWall = w;
+  const w = performance.now(), dt = w - lastWall; fpsAcc += dt; fpsN++; lastWall = w;
   if (fpsN >= 30) { fpsShown = 1000 / (fpsAcc / fpsN); fpsAcc = 0; fpsN = 0; }
+  adapt(dt);
   updateUI(t);
   lastT = t;
+}
+
+// Keep the film smooth on slower machines: if frames run long for a while, render
+// fewer pixels (bloom and grain hide the difference); recover when there's headroom.
+let ema = 16.7, slowFor = 0, fastFor = 0, lastAdapt = 0;
+function adapt(dt) {
+  if (dt > 250) return;                               // tab switch / seek, not a real frame
+  ema = ema * 0.94 + dt * 0.06;
+  const now = performance.now();
+  slowFor = ema > 23 ? slowFor + dt : 0;
+  fastFor = ema < 14 ? fastFor + dt : 0;
+  if (now - lastAdapt < 2500) return;
+  if (slowFor > 1200 && resScale > 0.55) { resScale = Math.max(0.55, resScale * 0.84); lastAdapt = now; slowFor = 0; resize(); ema = 16.7; }
+  else if (fastFor > 5000 && resScale < 1) { resScale = Math.min(1, resScale * 1.12); lastAdapt = now; fastFor = 0; resize(); ema = 16.7; }
 }
 
 // ------------------------------------------------------------------- UI ---

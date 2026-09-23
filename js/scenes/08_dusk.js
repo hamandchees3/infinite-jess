@@ -105,7 +105,7 @@ void main(){
   vec2 asp = vec2(uRes.x/uRes.y, 1.);
   vec2 uv = vUv;
   // hand-painted wobble
-  vec2 w = vec2(fbm(uv*asp*7.), fbm(uv*asp*7. + 9.)) - .5;
+  vec2 w = vec2(fbm3(uv*asp*7.), fbm3(uv*asp*7. + 9.)) - .5;
   uv += w*.006;
   vec3 c = tap(uv);
   // pigment pools at the edges of each wash
@@ -115,16 +115,16 @@ void main(){
   float edge = sat((length(gx) + length(gy))*1.4);
   c *= 1. - .35*edge;
   // uneven pigment: blooms and backruns
-  float blot = fbm(uv*asp*vec2(5., 4.) + 3.1);
+  float blot = fbm3(uv*asp*vec2(5., 4.) + 3.1);
   c = mix(c, c*c*1.15, .3*smoothstep(.45, .75, blot));
   // granulation, heavier in the darks
-  float gr = fbm(uv*asp*260.);
+  float gr = vnoise(uv*asp*260.)*.6 + vnoise(uv*asp*120.)*.4;
   c *= 1. - (.1 + .15*(1. - luma(c)))*(gr - .45);
   // cold-press paper
-  float paperN = fbm(uv*asp*90.)*.6 + fbm(uv*asp*18.)*.4;
+  float paperN = vnoise(uv*asp*90.)*.6 + fbm3(uv*asp*18.)*.4;
   vec3 paper = vec3(.985,.97,.935)*(.93 + .07*paperN);
   // the wash spreads from the middle, with a darker wet edge
-  float r = length((vUv - vec2(.5, .45))*asp) + (fbm(uv*asp*4.) - .5)*.35;
+  float r = length((vUv - vec2(.5, .45))*asp) + (fbm3(uv*asp*4.) - .5)*.35;
   float front = uReveal*1.6;
   float m = 1. - smoothstep(front - .06, front, r);
   float wet = smoothstep(.06, 0., abs(r - front + .03))*step(uReveal, .999);
@@ -160,6 +160,7 @@ IJ.registerScene({
     grow(1.4, -0.36, 0.08, 0.3, 0.026, 0, 8, 0.4, 1);
     grow(0.72, -0.24, 0.02, 0.12, 0.01, 0, 6, 0.8, 0.55);
     grow(-0.55, -0.24, -0.04, 0.1, 0.009, 0, 6, 1.0, 0.5);
+    this.tipMin = Math.min(...this.tips.map(t => t.t0));
     this.petals = Array.from({ length: 70 }, () => ({ x: R() * 3.6 - 1.8, y: R() * 1.4 - 0.2, s: R() * 6.28, v: 0.03 + R() * 0.04 }));
   },
   resize(W, H) {
@@ -193,7 +194,7 @@ IJ.registerScene({
     const bt = l - (C.blossom - START);
     if (bt > 0) {
       for (const tp of this.tips) {
-        const u = IJ.clamp((bt - tp.t0 * 0.35) / 0.4);
+        const u = IJ.clamp((bt - Math.max(0, tp.t0 - this.tipMin) * 0.45) / 0.4);   // the first open on the cue
         if (u <= 0) continue;
         const sz = 0.012 * tp.s * IJ.ease.outBack(u) * (0.7 + 0.6 * tp.r);
         const pink = tp.r > 0.3 ? [0.98, 0.68, 0.78] : [1, 0.9, 0.92];

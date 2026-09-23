@@ -15,7 +15,8 @@ uniform vec4 uDie;           // x, y, angle, face
 uniform vec3 uPts[${ND * 2}];
 
 float grain(vec2 p){ return smoothstep(.2, .75, vnoise(p*430.)*.55 + vnoise(p*vec2(70., 700.))*.45); }
-float chalk(float d, float w, vec2 p){ return (1. - smoothstep(w*.45, w, abs(d))) * (.5 + .5*grain(p)); }
+float G;                      // chalk grain at this pixel, computed once
+float chalk(float d, float w, vec2 p){ return (1. - smoothstep(w*.45, w, abs(d))) * (.5 + .5*G); }
 // the learner's boundary at iteration k (identical wobble in both panels: shared randomness)
 float boundary(vec2 q, float k){
   vec2 hq = q/${HS.toFixed(2)} + vec2(0., .55);
@@ -45,8 +46,9 @@ vec3 panel(vec3 col, vec2 p, vec2 c, float idx){
     if (float(i) >= uNDots) break;
     vec3 s = uPts[int(idx)*${ND} + i];
     vec2 r = q - s.xy;
+    if (dot(r, r) > .0012) continue;
     float m = s.z > .5 ? min(sdSeg(r, vec2(-.018,0.), vec2(.018,0.)), sdSeg(r, vec2(0.,-.018), vec2(0.,.018))) : abs(length(r) - .014);
-    col = mix(col, s.z > .5 ? vec3(.97,.9,.55) : W*.9, chalk(m, .0055, p + float(i)));
+    col = mix(col, s.z > .5 ? vec3(.97,.9,.55) : W*.9, chalk(m, .0055, p));
   }
   // the previous guess, being erased; the current one, being drawn
   float t = angleParam(q);
@@ -60,7 +62,7 @@ vec3 panel(vec3 col, vec2 p, vec2 c, float idx){
   col = mix(col, uIter >= 3. ? pink : W, chalk(bc, .009, p)*drawn);
   // the heart filled in with hatching, once the two boards agree
   if (uFill > 0.) {
-    float hatch = step(.55, fract((q.x + q.y)*70.)) * grain(p*1.3);
+    float hatch = step(.55, fract((q.x + q.y)*70.)) * (.4 + .6*G);
     float inside = 1. - smoothstep(-.004, .004, bc);
     col = mix(col, pink, inside*hatch*uFill*.55);
     col += pink*.25*uGlow*exp(-abs(bc)*40.)*uFill;
@@ -70,6 +72,7 @@ vec3 panel(vec3 col, vec2 p, vec2 c, float idx){
 
 void main(){
   vec2 p = (2.*gl_FragCoord.xy - uRes)/uRes.y / uZoom;
+  G = grain(p);
   // slate: green-black, chalk dust, old eraser swipes
   vec3 col = vec3(.12,.17,.15) + .025*fbm(p*3.) - .02*fbm(p*9. + 4.);
   float swipe = fbm(vec2(p.x*1.2, p.y*9.) + 7.);
@@ -90,7 +93,7 @@ void main(){
     if (f >= 2.) { pip = min(pip, length(q - vec2(.035,.035))); pip = min(pip, length(q + vec2(.035,.035))); }
     if (f >= 4.) { pip = min(pip, length(q - vec2(.035,-.035))); pip = min(pip, length(q + vec2(.035,-.035))); }
     if (f == 6.) { pip = min(pip, length(q - vec2(.035,0.))); pip = min(pip, length(q + vec2(.035,0.))); }
-    col = mix(col, Y, (1. - smoothstep(.009, .013, pip))*uDieA*(.6 + .4*grain(p)));
+    col = mix(col, Y, (1. - smoothstep(.009, .013, pip))*uDieA*(.6 + .4*G));
     // arrows: shared randomness goes to both
     for (int s = -1; s <= 1; s += 2){
       vec2 a = uDie.xy + vec2(float(s)*.12, 0.), b = uDie.xy + vec2(float(s)*.3, 0.);
