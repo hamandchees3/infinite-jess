@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infinite Jess</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #050507; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; font-family: 'Hoefler Text', 'Baskerville', Georgia, serif; color: #efe7da; }
+  canvas#film { display: block; background: #000; cursor: pointer; }
+  #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 45%, #15161d 0%, #050507 70%); transition: opacity 1.2s ease; cursor: default; z-index: 3; }
+  #overlay.gone { opacity: 0; pointer-events: none; }
+  body.ready #overlay { cursor: pointer; }
+  #overlay .for { font-style: italic; letter-spacing: .08em; opacity: .55; font-size: clamp(14px, 1.6vw, 20px); margin-bottom: 2.2em; }
+  #overlay .play { width: 78px; height: 78px; border-radius: 50%; border: 1px solid rgba(239,231,218,.35); display: flex; align-items: center; justify-content: center;
+    opacity: .25; transition: opacity .8s, transform .8s, border-color .8s; }
+  body.ready #overlay .play { opacity: 1; }
+  body.ready #overlay:hover .play { transform: scale(1.06); border-color: rgba(239,231,218,.8); }
+  #overlay .play::after { content: ''; margin-left: 6px; border-style: solid; border-width: 13px 0 13px 22px; border-color: transparent transparent transparent #efe7da; }
+  #status { margin-top: 1.8em; font-size: 13px; letter-spacing: .12em; text-transform: lowercase; opacity: .45; font-family: 'Avenir Next', 'Helvetica Neue', sans-serif; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; height: 14px; cursor: pointer; opacity: 0; transition: opacity .6s; z-index: 2; }
+  #bar::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.12); }
+  #prog { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: rgba(255,236,210,.7); }
+  body.mouse #bar, body:not(.playing) #bar { opacity: 1; }
+  body:not(.playing) #bar { opacity: .5; }
+  #dbg { display: none; position: fixed; left: 8px; top: 6px; font: 12px/1.3 ui-monospace, Menlo, monospace; color: #9f9; background: rgba(0,0,0,.55); padding: 3px 6px; z-index: 4; }
+</style>
+</head>
+<body>
+<canvas id="film"></canvas>
+<div id="overlay">
+  <div class="for">a film for Jess</div>
+  <div class="play"></div>
+  <div id="status">tuning the cartridge…</div>
+</div>
+<div id="bar"><div id="prog"></div></div>
+<div id="dbg"></div>
+<!--SCRIPTS-->
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/scenes/01_crt.js"></script>
+<script src="js/scenes/02_sky.js"></script>
+<script src="js/scenes/03_portrait.js"></script>
+<script src="js/scenes/04_silks.js"></script>
+<script src="js/scenes/05_cats.js"></script>
+<script src="js/scenes/06_lattice.js"></script>
+<script src="js/scenes/07_chalk.js"></script>
+<script src="js/scenes/08_dusk.js"></script>
+<script src="js/scenes/09_finale.js"></script>
+<script src="js/film.js"></script>
+<!--/SCRIPTS-->
+</body>
+</html>
